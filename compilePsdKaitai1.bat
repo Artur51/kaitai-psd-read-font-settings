@@ -1,0 +1,1 @@
+psd-kaitai/kaitai-struct-compiler.bat src/main/resources/kaitai/psd.ksy -t java --java-package "com.gen.kaitai.psd.v1" -d "src/main/java/"

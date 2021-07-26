@@ -1,0 +1,1148 @@
+meta:
+  id: psd_kaitai2
+  file-extension: psd
+  endian: be
+  encoding: UTF-16BE
+seq:
+  - id: file_header
+    type: file_header
+  - id: color_mode_data
+    type: color_mode_data
+  - id: image_resources
+    type: image_resources
+  - id: layer_and_mask_info
+    type: layer_and_mask_info
+types:
+  file_header:
+    seq:
+      - contents: '8BPS'
+      - id: version
+        contents: [0x00, 0x01]
+      - contents: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+      - id: channels_count
+        type: u2
+      - id: height
+        type: u4
+      - id: width
+        type: u4
+      - id: depth
+        type: u2
+      - id: color_mode
+        type: u2
+        enum: color_modes
+        
+  color_mode_data:
+    seq:
+      - id: length
+        type: u4
+      - id: data
+        size: length
+        
+  image_resources:
+    seq:
+      - id: length
+        type: u4
+      - id: data
+        type: image_resource_blocks
+        size: length
+  image_resource_blocks:
+    seq:
+      - id: irbs
+        type: image_resource_block
+        repeat: eos
+  irb_name:
+    seq:
+      - id: length
+        type: u2
+      - id: value
+        type: str
+        size: length
+        encoding: ASCII
+  image_resource_block:
+    seq:
+      - id: signature
+        contents: '8BIM'
+      - id: uid
+        type: u2
+        enum: image_resource_ids
+      - id: name
+        type: irb_name
+      - id: data_length
+        type: u4
+      - id: data
+        size: data_length
+        type:
+          switch-on: uid
+          cases:
+            "image_resource_ids::ps2_info": irb_ps2_info # 1000
+            "image_resource_ids::resolution_info": irb_resolution_info # 1005
+            "image_resource_ids::print_flags": irb_print_flags # 1011
+            "image_resource_ids::color_halftoning_info": irb_color_halftoning_info # 1013
+            "image_resource_ids::color_transfer_functions": irb_color_transfer_functions # 1016
+            "image_resource_ids::layer_state_info": irb_layer_state_info # 1016
+            "image_resource_ids::layers_group_info": irb_layers_group_info # 1026
+            "image_resource_ids::thumbnail": irb_thumbnail # 1036
+            "image_resource_ids::global_angle": irb_global_angle # 1037
+            "image_resource_ids::id_seed_number": irb_id_seed_number # 1044
+            "image_resource_ids::global_altitude": irb_global_altitude # 1049
+            "image_resource_ids::slices": irb_slices # 1050
+            "image_resource_ids::version_info": irb_version_info # 1057
+            "image_resource_ids::caption_digest": irb_caption_digest # 1061
+            "image_resource_ids::print_scale": irb_print_scale # 1062
+            "image_resource_ids::pixel_aspect_ratio": irb_pixel_aspect_ratio # 1064
+            "image_resource_ids::layer_comps": descriptor_with_version # 1065
+            "image_resource_ids::measurement_scale": descriptor_with_version # 1074
+            "image_resource_ids::timeline_info": descriptor_with_version # 1075
+            "image_resource_ids::sheet_disclosure": descriptor_with_version # 1076
+            "image_resource_ids::onion_skins": descriptor_with_version # 1078
+            "image_resource_ids::count_info": descriptor_with_version # 1080
+            "image_resource_ids::print_settings": descriptor_with_version # 1082
+            "image_resource_ids::print_style": descriptor_with_version # 1083
+            "image_resource_ids::path_selection_state": descriptor_with_version # 1088
+            "image_resource_ids::origin_path_info": descriptor_with_version # 3000
+            "image_resource_ids::print_flags_info": irb_print_flags_info # 10000
+      - contents: [0x00]
+        if: data_length % 2 == 1
+            
+  irb_ps2_info: # 1000
+    seq:
+      - id: channels_count
+        type: u2
+      - id: height
+        type: u2
+      - id: width
+        type: u2
+      - id: depth
+        type: u2
+      - id: color_mode
+        type: u2
+        enum: color_modes
+  irb_resolution_info: # 1005
+    seq:
+      - id: horizontal_resolution
+        type: f4
+      - id: horizontal_resolution_unit
+        type: u2
+        enum: resolution_units
+      - id: width_unit
+        type: u2
+        enum: units
+      - id: vertical_resolution
+        type: f4
+      - id: vertical_resolution_unit
+        type: u2
+        enum: resolution_units
+      - id: height_unit
+        type: u2
+        enum: units
+  irb_print_flags: # 1011
+    seq:
+      - id: labels
+        type: u1
+      - id: crop_marks
+        type: u1
+      - id: crop_bars
+        type: u1
+      - id: registration_marks
+        type: u1
+      - id: negative
+        type: u1
+      - id: flip
+        type: u1
+      - id: interpolate
+        type: u1
+      - id: caption
+        type: u1
+      - id: print_flags
+        type: u1
+  irb_color_halftoning_info: # 1013
+    seq:
+      - id: r
+        type: halftoning_info
+      - id: g
+        type: halftoning_info
+      - id: b
+        type: halftoning_info
+      - id: a
+        type: halftoning_info
+  halftoning_info:
+    seq:
+      - id: screen_frequency
+        type: fp4
+      - id: screen_frequency_unit
+        type: u2
+        enum: screen_frequency_units
+      - id: screen_angle
+        type: fp4
+      - id: halftone_dots_shape
+        type: u2
+        enum: halftone_dots_shapes
+#      - contents: [0x00, 0x00, 0x00, 0x00]
+      - id: use_accurate_screens
+        type: u1
+      - id: use_printers_default_screens
+        type: u1
+  irb_color_transfer_functions: # 1016
+    seq:
+      - id: r
+        type: s2
+        repeat: expr
+        repeat-expr: 13
+      - contents: [0x00, 0x00]
+      - id: g
+        type: s2
+        repeat: expr
+        repeat-expr: 13
+      - contents: [0x00, 0x00]
+      - id: b
+        type: s2
+        repeat: expr
+        repeat-expr: 13
+      - contents: [0x00, 0x00]
+      - id: a
+        type: s2
+        repeat: expr
+        repeat-expr: 13
+      - contents: [0x00, 0x00]
+  transfer_function:
+    seq:
+      - id: curve
+        type: s2
+        repeat: expr
+        repeat-expr: 13
+      - contents: [0x00, 0x00]
+  irb_layer_state_info: # 1024
+    seq:
+      - id: target_layer_index
+        type: u2
+  irb_layers_group_info: # 1026
+    seq:
+      - id: layers_groups
+        type: u2
+        repeat: eos
+  irb_thumbnail: # 1036
+    seq:
+      - id: format
+        type: u4
+        enum: thumbnail_formats
+      - id: width
+        type: u4
+      - id: height
+        type: u4
+      - id: widthbytes # Padded row bytes = (width * bits per pixel + 31) / 32 * 4
+        type: u4
+      - id: total_size # Total size = widthbytes * height * planes
+        type: u4
+      - id: compressed_size
+        type: u4
+      - id: bpp
+        contents: [00, 24]
+      - id: planes_count
+        contents: [00, 01]
+      - id: data
+        size-eos: true
+  irb_global_angle: # 1037
+    seq:
+      - id: global_angle
+        type: s4
+  irb_id_seed_number: # 1044
+    seq:
+      - id: seed_number
+        type: u4
+  irb_global_altitude: # 1049
+    seq:
+      - id: global_altitude
+        type: s4
+  irb_slices: # 1050
+    seq:
+      - id: version
+        type: u4
+      - id: data_v6
+        type: irb_slices_v6
+        if: version == 6
+      - id: data_v7
+        type: descriptor_with_version
+        if: version >= 7
+  irb_slices_v6:
+    seq:
+      - id: bounding_rectangle
+        type: rectangle
+      - id: slices_group_name
+        type: unicode_string
+      - id: slices_count
+        type: u4
+      - id: slices
+        type: irb_slices_v6_item
+        repeat: expr
+        repeat-expr: slices_count
+  irb_slices_v6_item:
+    seq:
+      - id: id
+        type: u4
+      - id: group_id
+        type: u4
+      - id: origin
+        type: u4
+      - id: associated_layer_id
+        type: u4
+        if: origin == 1
+      - id: name
+        type: unicode_string
+      - id: type
+        type: u4
+      - id: rectangle
+        type: rectangle
+      - id: url
+        type: unicode_string
+      - id: target
+        type: unicode_string
+      - id: message
+        type: unicode_string
+      - id: alt_tag
+        type: unicode_string
+      - id: cell_text_html
+        type: u1
+      - id: cell_text
+        type: unicode_string
+      - id: horizontal_alignment
+        type: u4
+      - id: vertical_alignment
+        type: u4
+      - id: color
+        type: color4
+      - id: additional_data
+        type: descriptor_with_version
+        size-eos: true
+  irb_version_info: # 1057
+    seq:
+      - id: version
+        type: u4
+      - id: has_real_merged_data
+        type: u1
+      - id: writer_name
+        type: unicode_string
+      - id: reader_name
+        type: unicode_string
+      - id: file_version
+        type: u4
+  irb_caption_digest: # 1061
+    seq:
+      - id: rsa_md5
+        size: 16
+  irb_print_scale: # 1062
+    seq:
+      - id: style
+        type: u2
+        enum: print_scale_styles
+      - id: x
+        type: f4
+      - id: y
+        type: f4
+      - id: scale
+        type: f4
+  irb_pixel_aspect_ratio: # 1064
+    seq:
+      - id: version
+        type: u4
+      - id: pixel_aspect_ratio # x / y
+        type: f8
+  irb_print_flags_info: # 10000
+    seq:
+      - id: version
+        contents: [0x00, 0x01]
+      - id: center_crop_marks
+        type: u1
+      - type: u1
+      - id: bleed_width
+        type: u4
+      - id: bleed_width_scale
+        type: u2
+        
+        
+        
+  unicode_string:
+    seq:
+      - id: length
+        type: u4
+      - id: value
+        type: str
+        size: length * 2
+        encoding: UTF-16BE
+  pascal_string_4: # pascal string, padded to a multiple of 4 bytes
+    seq:
+      - id: length
+        type: u1
+      - id: value
+        type: str
+        size: length
+        encoding: ASCII
+      - size: 4 - ((length + 1) % 4)
+        if: (length + 1) % 4 != 0
+  fp4: # fixed point, 4 bytes. 2 bytes integer, 2 bytes fractional
+    seq:
+      - id: int
+        type: s2
+      - id: frac
+        type: s2
+  rectangle:
+    seq:
+      - id: top
+        type: s4
+      - id: left
+        type: s4
+      - id: bottom
+        type: s4
+      - id: right
+        type: s4
+  color4:  
+    seq:
+      - id: alpha
+        type: u1
+      - id: red
+        type: u1
+      - id: green
+        type: u1
+      - id: blue
+        type: u1
+  color8:  
+    seq:
+      - id: alpha
+        type: u2
+      - id: red
+        type: u2
+      - id: green
+        type: u2
+      - id: blue
+        type: u2
+        
+        
+        
+  descriptor_with_version:
+    seq:
+      - id: version
+        contents: [0x00, 0x00, 0x00, 0x10]
+      - id: descriptor
+        type: descriptor
+  descriptor:
+    seq:
+      - id: name
+        type: unicode_string
+      - id: class_id
+        type: class_id
+      - id: items_count
+        type: u4
+      - id: items
+        type: descriptor_item
+        repeat: expr
+        repeat-expr: items_count
+  class_id:
+    seq:
+      - id: length
+        type: u4
+      - id: name
+        type: str
+        size: length
+        encoding: ASCII
+        if: length > 0
+      - id: id
+        type: str
+        size: 4
+        encoding: ASCII
+        if: length == 0
+  descriptor_item:
+    seq:
+      - id: key
+        type: class_id
+      - id: type
+        type: u4
+        enum: descriptor_item_types
+      - id: value
+        type:
+          switch-on: type
+          cases:
+            "descriptor_item_types::obj_": descriptor_item_reference
+            "descriptor_item_types::objc": descriptor
+            "descriptor_item_types::vlls": descriptor_item_list
+            "descriptor_item_types::doub": descriptor_item_double
+            "descriptor_item_types::untf": descriptor_item_unit_float
+            "descriptor_item_types::text": descriptor_item_string
+            "descriptor_item_types::enum": descriptor_item_enumerated
+            "descriptor_item_types::long": descriptor_item_integer
+            "descriptor_item_types::comp": descriptor_item_large_integer
+            "descriptor_item_types::bool": descriptor_item_boolean
+            "descriptor_item_types::glbo": descriptor
+            "descriptor_item_types::type": descriptor_item_class
+            "descriptor_item_types::glbc": descriptor_item_class
+            "descriptor_item_types::alis": descriptor_item_alias
+            "descriptor_item_types::tdta": descriptor_item_raw_data
+  descriptor_item_reference:
+    seq:
+      - id: items_count
+        type: u4
+      - id: items
+        type: descriptor_reference_item
+        repeat: expr
+        repeat-expr: items_count
+  descriptor_reference_item:
+    seq:
+      - id: type
+        type: u4
+        enum: descriptor_reference_item_types
+      - id: data
+        type:
+          switch-on: type
+          cases:
+            "descriptor_reference_item_types::prop": descriptor_item_property
+            "descriptor_reference_item_types::clss": descriptor_item_class
+            "descriptor_reference_item_types::enmr": descriptor_item_enumerated_reference
+            "descriptor_reference_item_types::rele": descriptor_item_offset
+            "descriptor_reference_item_types::idnt": descriptor_item_identifier
+            "descriptor_reference_item_types::indx": descriptor_item_index
+            "descriptor_reference_item_types::name": descriptor_item_name
+  descriptor_item_property:
+    seq:
+      - id: name
+        type: unicode_string
+      - id: class_id
+        type: class_id
+      - id: key_id
+        type: class_id
+  descriptor_item_unit_float:
+    seq:
+      - id: unit
+        type: u4
+        enum: descriptor_unit_float_units
+      - id: value
+        type: f8
+  descriptor_item_double:
+    seq:
+      - id: value
+        type: f8
+  descriptor_item_class:
+    seq:
+      - id: name
+        type: unicode_string
+      - id: class_id
+        type: class_id
+  descriptor_item_string:
+    seq:
+      - id: value
+        type: unicode_string
+  descriptor_item_enumerated_reference:
+    seq:
+      - id: name
+        type: unicode_string
+      - id: class_id
+        type: class_id
+      - id: type_id
+        type: class_id
+      - id: enum
+        type: class_id
+  descriptor_item_offset:
+    seq:
+      - id: name
+        type: unicode_string
+      - id: class_id
+        type: class_id
+      - id: value
+        type: s4
+  descriptor_item_boolean:
+    seq:
+      - id: value
+        type: u1
+  descriptor_item_alias:
+    seq:
+      - id: length
+        type: u4
+      - id: data
+        size: length
+  descriptor_item_list:
+    seq:
+      - id: items_count
+        type: u4
+      - id: items
+        type: descriptor_item_list_item
+        repeat: expr
+        repeat-expr: items_count
+  descriptor_item_list_item:
+    seq:
+      - id: type
+        type: u4
+        enum: descriptor_item_types
+      - id: value
+        type:
+          switch-on: type
+          cases:
+            "descriptor_item_types::obj_": descriptor_item_reference
+            "descriptor_item_types::objc": descriptor
+            "descriptor_item_types::vlls": descriptor_item_list
+            "descriptor_item_types::doub": descriptor_item_double
+            "descriptor_item_types::untf": descriptor_item_unit_float
+            "descriptor_item_types::text": descriptor_item_string
+            "descriptor_item_types::enum": descriptor_item_enumerated
+            "descriptor_item_types::long": descriptor_item_integer
+            "descriptor_item_types::comp": descriptor_item_large_integer
+            "descriptor_item_types::bool": descriptor_item_boolean
+            "descriptor_item_types::glbo": descriptor
+            "descriptor_item_types::type": descriptor_item_class
+            "descriptor_item_types::glbc": descriptor_item_class
+            "descriptor_item_types::alis": descriptor_item_alias
+            "descriptor_item_types::tdta": descriptor_item_raw_data
+  descriptor_item_large_integer:
+    seq:
+      - id: value
+        type: s8
+  descriptor_item_integer:
+    seq:
+      - id: value
+        type: s4
+  descriptor_item_enumerated:
+    seq:
+      - id: type
+        type: class_id
+      - id: enum
+        type: class_id
+  descriptor_item_raw_data:
+    seq:
+      - id: data
+        size-eos: true
+        
+  # I'm not sure about those descriptor items, because it's undocumented:
+  descriptor_item_identifier:
+    seq:
+      - id: value
+        type: unicode_string
+  descriptor_item_name:
+    seq:
+      - id: value
+        type: unicode_string
+  descriptor_item_index:
+    seq:
+      - id: value
+        type: u4
+        
+        
+        
+        
+        
+        
+        
+        
+  layer_and_mask_info:
+    seq:
+      - id: length
+        type: u4
+      - id: layers_info_length
+        type: u4
+      - id: layers_info
+        type: layers_info
+        size: layers_info_length
+  layers_info:
+    seq:
+      - id: count
+        type: u2
+      - id: layers
+        type: layer
+        repeat: expr
+        repeat-expr: count
+      - id: layer_channels
+        type: layer_channels
+        parent: layers[_index]
+        repeat: expr
+        repeat-expr: count
+  layer:
+    seq:
+      - id: rectangle
+        type: rectangle
+      - id: channels_count
+        type: u2
+      - id: channels_info
+        type: layer_channel_info
+        repeat: expr
+        repeat-expr: channels_count
+      - contents: '8BIM'
+      - id: blend_mode
+        type: u4
+        enum: blend_modes
+      - id: opacity
+        type: u1
+      - id: clipping
+        type: u1
+        enum: clipping_types
+      - id: flags
+        type: u1
+        doc: seems to be deprecated with IRBs
+      - contents: [0x00]
+      - id: extra_data_length
+        type: u4
+      - id: extra_data
+        type: layer_extra_data
+        size: extra_data_length
+  layer_extra_data:
+    seq:
+      - id: mask_data_length
+        type: u4
+      - id: mask_data
+        type: layer_mask
+        size: mask_data_length
+        if: mask_data_length > 0
+      - id: blending_ranges_length
+        type: u4
+      - id: blending_ranges
+        type: layer_blending_range
+        repeat: expr
+        repeat-expr: blending_ranges_length / 8
+        doc: composite gray blend, then color channels
+      - id: name
+        type: pascal_string_4
+      - id: additional_info
+        type: layer_additional_info
+        repeat: eos
+  layer_channel_info:
+    seq:
+      # -1 = alpha, 0 = red, 1 = green, 2 = blue
+      # not enumerated because can differ for different color modes
+      - id: id
+        type: s2
+        doc: -1 = alpha, 0 = red (cyan, lightness), 1 = green (magenta, lab-A) etc.
+      - id: length
+        type: u4
+  layer_mask: # TODO: check it
+    seq:
+      - id: rectangle
+        type: rectangle
+      - id: default_color
+        type: u1
+      - id: flags
+        type: u1
+      - id: mask_parameters
+        type: u1
+        if: flags&0x10 == 1
+      - contents: [0x00, 0x00]
+        #if: _parent.mask_data_length == 20
+      - id: real_flags
+        type: u1
+      - id: real_background
+        type: u1
+      - id: enclosing_rectangle
+        type: rectangle
+  layer_blending_range:
+    seq:
+      - id: source
+        type: layer_blending_range_color
+      - id: destination
+        type: layer_blending_range_color
+  layer_blending_range_color:
+    seq:
+      - id: black_0
+        type: u1
+      - id: black_1
+        type: u1
+      - id: white_0
+        type: u1
+      - id: white_1
+        type: u1
+  layer_additional_info:
+    seq:
+      - contents: '8BIM'
+      - id: type
+        type: u4
+        enum: layer_additional_info_types
+      - id: length
+        type: u4
+      - id: data
+        size: length
+        type:
+          switch-on: type
+          cases:
+            "layer_additional_info_types::unicode_layer_name": unicode_string
+            "layer_additional_info_types::layer_name_source": lai_layer_name_source
+            "layer_additional_info_types::layer_id": lai_layer_id
+            "layer_additional_info_types::blend_clipping_elements": lai_boolean
+            "layer_additional_info_types::blend_interior_elements": lai_boolean
+            "layer_additional_info_types::knockout": lai_boolean
+            "layer_additional_info_types::protection": lai_protection
+            "layer_additional_info_types::sheet_color": color4 # TODO: check it, maybe should be color8
+            "layer_additional_info_types::reference_point": lai_reference_point
+            "layer_additional_info_types::ps5_effects": lai_ps5_effects
+            "layer_additional_info_types::type_tool_info": lai_type_tool_info
+  # "lai" is just internal abbreviation
+  lai_layer_name_source:
+    seq:
+      - id: value
+        type: u4
+  lai_layer_id:
+    seq:
+      - id: value
+        type: u4
+  lai_boolean:
+    seq:
+      - id: value
+        type: b1
+  lai_protection:
+    seq:
+      - id: transparency
+        type: b1
+      - id: composite
+        type: b1
+      - id: position
+        type: b1
+  lai_reference_point:
+    seq:
+      - id: x
+        type: f8
+      - id: y
+        type: f8
+  lai_ps5_effects:
+    seq:
+      - id: version
+        contents: [0x00, 0x00]
+      - id: count
+        type: u2
+      - id: effects
+        type: lai_ps5_effect
+        #repeat: expr
+        #repeat-expr: 1
+  lai_ps5_effect:
+    seq:
+      - contents: '8BIM'
+      - id: type
+        type: u4
+        enum: layer_ps5_effects
+      - id: data
+        type:
+          switch-on: type
+          cases:
+            "layer_ps5_effects::common_state": lai_ps5_effect_common_state
+            "layer_ps5_effects::drop_shadow": lai_ps5_effect_shadow
+            "layer_ps5_effects::inner_shadow": lai_ps5_effect_shadow
+  lai_ps5_effect_common_state:
+    seq:
+      # yep, all fields are hard-coded
+      # i don't know why
+      - id: length
+        contents: [0x00, 0x00, 0x00, 0x07]
+      - id: version
+        contents: [0x00, 0x00, 0x00, 0x00]
+      - id: visible
+        contents: [0x01]
+      - contents: [0x00, 0x00]
+  lai_ps5_effect_shadow:
+    seq:
+      - id: length
+        type: u4
+      - id: version
+        type: u4
+        doc: 0 for ps5.0, 2 for ps5.5
+      - id: blur_value
+        type: u4
+        doc: in pixels
+      - id: intensity
+        type: u4
+        doc: in percents
+      - id: angle
+        type: s4
+        doc: in degrees
+      - id: distance
+        type: s4
+        doc: in pixels
+      - contents: [0x00, 0x00]
+      - id: color
+        type: color8
+  lai_type_tool_info:
+    seq:
+      - id: version
+        contents: [0x00, 0x01]
+      - id: transform_info
+        type: f8
+        repeat: expr
+        repeat-expr: 6
+      - id: font_version
+        type: u2
+      - id: font_data
+        type: descriptor_with_version
+        if: font_version == 50
+    types:
+      ps5_font_info:
+        seq:
+          - id: faces_count
+            type: u2
+        
+        
+        
+        
+        
+        
+  layer_channels:
+    seq:
+      - id: channels
+        type: channel_image_data
+        repeat: expr
+        repeat-expr: _parent.channels_count
+        size: _parent.channels_info[_index].length
+        
+        
+  channel_image_data:
+    seq:
+      - id: compression_type
+        type: u2
+        enum: compression_types
+  #    - id: data
+  #      type:
+  #        switch-on: compression_type
+  #        cases:
+  #          "compression_types::raw": channel_image_data_raw
+  #          "compression_types::rle": channel_image_data_rle
+  #channel_image_data_raw:
+  #  seq:
+  #    - id: raw
+  #      size: data_length
+  #  instances:
+  #    data_length:
+  #      value: (_parent._parent.rectangle.bottom - _parent._parent.rectangle.top) * (_parent._parent.rectangle.right - _parent._parent.rectangle.left) * (_root.file_header.depth >> 3)
+  #      doc: width * height * (bpp / 8)
+  #channel_image_data_rle:
+  #  seq:
+  #    - id: lengths
+  #      type: u2
+  #      repeat: expr
+  #      repeat-expr: scanlines_count
+  #    - id: scanlines
+  #      size: lengths[_index]
+  #      repeat: expr
+  #      repeat-expr: scanlines_count
+  #      doc: PackBits-encoded scanline
+  #  instances:
+  #    scanlines_count:  
+  #      value: (_parent._parent.rectangle.bottom - _parent._parent.rectangle.top)
+        
+        
+        
+enums:
+  color_modes:
+    0: bitmap
+    1: grayscale
+    2: indexed
+    3: rgb
+    4: cmyk
+    7: multichannel
+    8: duotone
+    9: lab
+  resolution_units:
+    1: pixels_per_inch
+    2: pixels_per_cm
+  units:
+    1: inch
+    2: cm
+    3: pt
+    4: picas
+    5: columns
+  screen_frequency_units:
+    1: lines_per_inch
+    2: lines_per_cm
+  halftone_dots_shapes:
+    0: round
+    1: ellipse
+    2: line
+    3: square
+    4: cross
+    6: diamond
+  descriptor_item_types:
+    1868720672: obj_
+    1331849827: objc
+    1449938035: vlls
+    1685026146: doub
+    1433302086: untf
+    1413830740: text
+    1701737837: enum
+    1819242087: long
+    1668246896: comp
+    1651470188: bool
+    1198285391: glbo
+    1954115685: type
+    1198285379: glbc
+    1634494835: alis
+    1952740449: tdta
+  descriptor_reference_item_types:
+    1886547824: prop
+    1131180915: clss
+    1164864882: enmr
+    1919249509: rele
+    1231318644: idnt
+    1768842360: indx
+    1851878757: name
+  descriptor_unit_float_units:
+    591490663: angle
+    592606060: density
+    592604276: distance
+    592342629: none
+    592474723: percent
+    592476268: pixels
+  thumbnail_formats:
+    0: raw_rgb
+    1: jpeg_rgb
+  print_scale_styles:
+    0: centered
+    1: size_to_fit
+    2: user_defined
+  image_resource_ids:
+    1000: ps2_info # Obsolete
+    1001: mac_print_manager_info # TODO
+    1002: mac_page_format_info # Obsolete
+    1003: ps2_indexed_color_table # Obsolete
+    1005: resolution_info
+    1006: alpha_channels_names # TODO
+    1007: old_display_info # Obsolete
+    1008: caption # TODO
+    1009: border_info # TODO
+    1010: background_color # TODO
+    1011: print_flags
+    1012: grayscale_and_multichannel_halftoning_info # TODO
+    1013: color_halftoning_info
+    1014: duotone_halftoning_info # TODO
+    1015: grayscale_and_multichannel_transfer_function # TODO
+    1016: color_transfer_functions
+    1017: duotone_transfer_functions # TODO
+    1018: duotone_image_info # TODO
+    1019: effective_black_and_white_values # TODO
+    1021: eps_options # TODO
+    1022: quick_mask_info # TODO
+    1024: layer_state_info
+    1025: working_path # TODO
+    1026: layers_group_info
+    1028: uptc_naa_record # TODO
+    1029: raw_format_files_image_mode # TODO
+    1030: jpeg_quality # TODO
+    1032: grid_and_guides_info # TODO
+    1033: ps4_thumbnail # TODO
+    1034: copyright_flag # TODO
+    1035: url # TODO
+    1036: thumbnail
+    1037: global_angle
+    1039: icc_profile # TODO
+    1040: watermark # TODO
+    1041: icc_untagged_profile # TODO
+    1042: effects_visible # TODO
+    1043: spot_halftone # TODO
+    1044: id_seed_number
+    1045: unicode_alpha_names # TODO
+    1046: indexed_color_table_count # TODO
+    1047: transparency_index # TODO
+    1049: global_altitude
+    1050: slices
+    1051: workflow_url # TODO
+    1052: jump_to_xpep # TODO
+    1053: alpha_indentifiers # TODO
+    1054: url_list # TODO
+    1057: version_info
+    1058: exif_data_1 # TODO
+    1059: exif_data_3 # TODO
+    1060: xmp_metadata # TODO
+    1061: caption_digest
+    1062: print_scale
+    1064: pixel_aspect_ratio
+    1065: layer_comps
+    1066: alternate_duotone_colors # TODO
+    1067: alternate_spot_colors # TODO
+    1069: layer_selection_ids # TODO
+    1070: hdr_toning_info # TODO
+    1071: print_info # TODO
+    1072: layer_groups_enabled_id # TODO
+    1073: color_samplers # TODO
+    1074: measurement_scale
+    1075: timeline_info
+    1076: sheet_disclosure
+    1077: display_info # TODO
+    1078: onion_skins
+    1080: count_info
+    1082: print_settings
+    1083: print_style
+    1084: mac_ns_print_info # TODO
+    1085: win_devmode # TODO
+    1086: auto_save_file_path # TODO
+    1087: auto_save_format # TODO
+    1088: path_selection_state
+    2999: clipping_path_name # TODO
+    3000: origin_path_info
+    10000: print_flags_info
+  blend_modes:
+    1885434739: pass_through
+    1852797549: normal
+    1684632435: dissolve
+    1684107883: darken
+    1836411936: multiply
+    1768188278: color_burn
+    1818391150: linear_burn
+    1684751212: darker_color
+    1818850405: lighten
+    1935897198: screen
+    1684633120: color_dodge
+    1818518631: linear_dodge
+    1818706796: lighter_color
+    1870030194: overlay
+    1934387572: soft_light
+    1749838196: hard_light
+    1984719220: vivd_light
+    1816947060: linear_light
+    1884055924: pin_light
+    1749903736: hard_mix
+    1684629094: difference
+    1936553316: exclusion
+    1718842722: subscract
+    1717856630: divide
+    1752524064: hue
+    1935766560: saturation
+    1668246642: color
+    1819634976: luminosity
+  clipping_types:
+    0: base
+    1: non_base
+  layer_additional_info_types: # TODO
+    1819635305: unicode_layer_name
+    1819177842: layer_name_source
+    1819896164: layer_id
+    1668047468: blend_clipping_elements
+    1768842872: blend_interior_elements
+    1802398575: knockout
+    1819504742: protection
+    1818455154: sheet_color
+    1936223588: metadata # undocumented fully
+    1719169648: reference_point
+    1819428440: ps5_effects
+    1818654770: effects
+    1417237352: type_tool_info
+    
+    # TODO:
+    1399800687: solid_color
+    1197753964: gradient
+    1349797484: pattern
+    1651665268: brightness_contrast
+    1818588780: levels
+    1668641398: curves
+    1702391873: exposure
+    1986617921: vibrance
+    1752524064: ps4_hue_saturation
+    1752524082: hue_saturation
+    1651273315: color_balance
+    1651275624: black_and_white
+    1885890156: photo_filter
+    1835628658: channel_mixer
+    1668051532: color_lookup
+    1853256308: invert
+    1886352244: posterize
+    1953002099: threshold
+    1735550061: gradient_map
+    1936026723: selective_color
+  layer_ps5_effects:
+    1668116051: common_state
+    1685283959: drop_shadow
+    1769170039: inner_shadow
+    1869048951: outer_glow
+    1768385655: inner_glow
+    1650816620: bevel
+    1936680553: solid_fill
+  compression_types:
+    0: raw
+    1: rle
+    2: zip_without_prediction # TODO
+    3: zip_with_prediction # TODO

@@ -1,0 +1,37 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath("name.valery1707.kaitai:kaitai-gradle-plugin:0.1.2")
+    }
+}
+plugins {
+    id 'java'
+}
+apply plugin: 'name.valery1707.kaitai'
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+//https://github.com/valery1707/kaitai-gradle-plugin
+kaitai {
+    packageName = 'com.gen.kaitai.psd'
+    output = new File('src/main/java')
+    version = '0.9'
+    url = new URL("https://github.com/kaitai-io/kaitai_struct_compiler/releases/download/0.9/kaitai-struct-compiler-0.9.zip")
+}
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+    implementation 'io.kaitai:kaitai-struct-compiler_2.12:0.9'
+    implementation("io.kaitai:kaitai-struct-runtime:0.9")
+}
+
+test {
+    useJUnitPlatform()
+}
