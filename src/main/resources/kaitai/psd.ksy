@@ -15,6 +15,216 @@ seq:
 #  - id: image_data
 #    type: image_data
 types:
+    
+  descriptor_item:
+    seq:
+      - id: key
+        type: string_or_key
+      - id: data_type
+        type: u4
+        enum: os_type_keys
+      - id: data
+        type:
+          switch-on: data_type
+          cases:
+            os_type_keys::reference: reference_item_data
+            os_type_keys::descriptor: descriptor_item_data
+            os_type_keys::list: list_item_data
+            os_type_keys::double: double_item_data
+            os_type_keys::unit_float: unit_float_item_data
+            os_type_keys::string: string_item_data
+            os_type_keys::enumerated: enumerated_item_data
+            os_type_keys::integer: integer_item_data
+            os_type_keys::large_integer: large_integer_item_data
+            os_type_keys::boolean: boolean_item_data
+            os_type_keys::global_object: descriptor_item_data
+            os_type_keys::class: class_item_data
+            os_type_keys::global_class: class_item_data
+            os_type_keys::alias: alias_item_data
+            #os_type_keys::raw_data: raw_data_item_data
+    types:
+      reference_item_data:
+        seq:
+          - id: number_of_items
+            type: s4
+          - id: data_type
+            type: u4
+            enum: os_type_keys_for_type_to_use
+          - id: data
+            type:
+              switch-on: data_type
+              cases:
+                os_type_keys_for_type_to_use::property: reference_item_property_data
+                os_type_keys_for_type_to_use::class: reference_item_class_data
+                os_type_keys_for_type_to_use::enumerated_reference: reference_item_enumerated_reference_data
+                os_type_keys_for_type_to_use::offset: reference_item_offset_data
+                #os_type_keys_for_type_to_use::identifier: reference_item_identifier_data
+                #os_type_keys_for_type_to_use::index: reference_item_index_data
+                #os_type_keys_for_type_to_use::name: reference_item_name_data
+        types:
+          reference_item_property_data:
+            seq:
+              - id: name_from_class_id
+                type: unicode_string_resource
+              - id: class_id
+                type: string_or_key
+              - id: key_id
+                type: string_or_key
+          reference_item_class_data:
+            seq:
+              - id: name_from_class_id
+                type: unicode_string_resource
+              - id: class_id
+                type: string_or_key
+          reference_item_enumerated_reference_data:
+            seq:
+              - id: name_from_class_id
+                type: unicode_string_resource
+              - id: class_id
+                type: string_or_key
+              - id: type_id
+                type: string_or_key
+              - id: enum_value
+                type: string_or_key
+          reference_item_offset_data:
+            seq:
+              - id: name_from_class_id
+                type: unicode_string_resource
+              - id: class_id
+                type: string_or_key
+              - id: offset
+                size: 4
+        enums:
+          os_type_keys_for_type_to_use:
+            0x70726F70: property #prop
+            0x436C7373: class #Clss
+            0x456E6D72: enumerated_reference #Enmr
+            0x72656C65: offset #rele
+            0x49646E74: identifier #Idnt
+            0x696E6478: index #indx
+            0x6E616D65: name #name
+      descriptor_item_data:
+        seq:
+          - id: descriptor
+            type: descriptor_resource
+      list_item_data:
+        seq:
+          - id: number_of_items
+            type: s4
+          - id: items
+            type: list_item
+            repeat: expr
+            repeat-expr: number_of_items
+        types:
+          list_item:
+            seq:
+              - id: item_data_type
+                type: u4
+                enum: os_type_keys
+              - id: item_data
+                type:
+                  switch-on: item_data_type
+                  cases:
+                    os_type_keys::reference: reference_item_data
+                    os_type_keys::descriptor: descriptor_item_data
+                    os_type_keys::list: list_item_data
+                    os_type_keys::double: double_item_data
+                    os_type_keys::unit_float: unit_float_item_data
+                    os_type_keys::string: string_item_data
+                    os_type_keys::enumerated: enumerated_item_data
+                    os_type_keys::integer: integer_item_data
+                    os_type_keys::large_integer: large_integer_item_data
+                    os_type_keys::boolean: boolean_item_data
+                    os_type_keys::global_object: descriptor_item_data
+                    os_type_keys::class: class_item_data
+                    os_type_keys::global_class: class_item_data
+                    os_type_keys::alias: alias_item_data
+                    #os_type_keys::raw_data: raw_data_item_data
+      double_item_data:
+        seq:
+          - id: value
+            type: f8
+      unit_float_item_data:
+        seq:
+          - id: unit
+            type: s4
+            enum: units
+          - id: value
+            type: f8
+        enums:
+          units:
+            0x23416E67: angle_base_degrees ##Ang
+            0x2352736C: density_base_per_inch ##Rsl
+            0x23526C74: distance_base_72ppi ##Rlt
+            0x234E6E65: none_coerced ##NNe
+            0x23507263: percent_unit_value ##Prc
+            0x2350786C: pixels_tagged_unit_value ##Pxl
+      string_item_data:
+        seq:
+          - id: string
+            type: unicode_string_resource
+      enumerated_item_data:
+        seq:
+          - id: type_id
+            type: string_or_key
+          - id: enum_value
+            type: string_or_key
+      integer_item_data:
+        seq:
+          - id: value
+            type: s4
+      large_integer_item_data:
+        seq:
+          - id: value
+            type: s8
+      boolean_item_data:
+        seq:
+          - id: value
+            type: b8
+      class_item_data:
+        seq:
+          - id: name_from_class_id
+            type: unicode_string_resource
+          - id: class_id
+            type: string_or_key
+      alias_item_data:
+        seq:
+          - id: size_of_data
+            type: s4
+          - id: data
+            size: size_of_data
+    enums:
+      os_type_keys:
+        0x6F626A20: reference #obj
+        0x4F626A63: descriptor #Objc
+        0x566C4C73: list #VILs
+        0x646F7562: double #doub
+        0x556E7446: unit_float #UntF
+        0x54455854: string #TEXT
+        0x656E756D: enumerated #enum_value
+        0x6C6F6E67: integer #long_value
+        0x636F6D70: large_integer #comp
+        0x626F6F6C: boolean #bool
+        0x476C624F: global_object #GlbO
+        0x74797065: class #type
+        0x476C6243: global_class #GlbC
+        0x616C6973: alias #alis
+        0x74647461: raw_data #tdta
+  string_or_key:
+    seq:
+      - id: length
+        type: s4
+      - id: string
+        type: str
+        encoding: ascii
+        size: length
+        if: length > 0
+      - id: key
+        type: str
+        encoding: ascii
+        size: 4
+        if: length == 0
+        
   header:
     seq:
       - id: signature
@@ -1494,19 +1704,24 @@ types:
                 seq:
                   - id: version
                     type: s2
-                    doc: value should be 1
+                    doc: value should be 1 for photoshop 6.0
                   - id: numbers_for_transform_information
                     size: 8
                     repeat: expr
                     repeat-expr: 6
+
                   - id: text_version
                     type: s2
-                    doc: value should be 50
+                    doc: value should be 50 for photoshop 6.0
                   - id: descriptor_version
                     type: s4
                     doc: value should be 16
                   - id: text_data_descriptor
                     type: descriptor_resource
+
+                    #variable
+                  - id: text_descriptor_item_variable1
+                    type: descriptor_item
 
                   - id: warp_version
                     type: s2
@@ -1755,215 +1970,8 @@ types:
         repeat: expr
         repeat-expr: number_of_items_in_descriptor
         #repeat-expr: number_of_items_in_descriptor > 10 ? 10 : number_of_items_in_descriptor
-    types:
-      descriptor_item:
-        seq:
-          - id: key
-            type: string_or_key
-          - id: data_type
-            type: u4
-            enum: os_type_keys
-          - id: data
-            type:
-              switch-on: data_type
-              cases:
-                os_type_keys::reference: reference_item_data
-                os_type_keys::descriptor: descriptor_item_data
-                os_type_keys::list: list_item_data
-                os_type_keys::double: double_item_data
-                os_type_keys::unit_float: unit_float_item_data
-                os_type_keys::string: string_item_data
-                os_type_keys::enumerated: enumerated_item_data
-                os_type_keys::integer: integer_item_data
-                os_type_keys::large_integer: large_integer_item_data
-                os_type_keys::boolean: boolean_item_data
-                os_type_keys::global_object: descriptor_item_data
-                os_type_keys::class: class_item_data
-                os_type_keys::global_class: class_item_data
-                os_type_keys::alias: alias_item_data
-                #os_type_keys::raw_data: raw_data_item_data
-        types:
-          reference_item_data:
-            seq:
-              - id: number_of_items
-                type: s4
-              - id: data_type
-                type: u4
-                enum: os_type_keys_for_type_to_use
-              - id: data
-                type:
-                  switch-on: data_type
-                  cases:
-                    os_type_keys_for_type_to_use::property: reference_item_property_data
-                    os_type_keys_for_type_to_use::class: reference_item_class_data
-                    os_type_keys_for_type_to_use::enumerated_reference: reference_item_enumerated_reference_data
-                    os_type_keys_for_type_to_use::offset: reference_item_offset_data
-                    #os_type_keys_for_type_to_use::identifier: reference_item_identifier_data
-                    #os_type_keys_for_type_to_use::index: reference_item_index_data
-                    #os_type_keys_for_type_to_use::name: reference_item_name_data
-            types:
-              reference_item_property_data:
-                seq:
-                  - id: name_from_class_id
-                    type: unicode_string_resource
-                  - id: class_id
-                    type: string_or_key
-                  - id: key_id
-                    type: string_or_key
-              reference_item_class_data:
-                seq:
-                  - id: name_from_class_id
-                    type: unicode_string_resource
-                  - id: class_id
-                    type: string_or_key
-              reference_item_enumerated_reference_data:
-                seq:
-                  - id: name_from_class_id
-                    type: unicode_string_resource
-                  - id: class_id
-                    type: string_or_key
-                  - id: type_id
-                    type: string_or_key
-                  - id: enum_value
-                    type: string_or_key
-              reference_item_offset_data:
-                seq:
-                  - id: name_from_class_id
-                    type: unicode_string_resource
-                  - id: class_id
-                    type: string_or_key
-                  - id: offset
-                    size: 4
-            enums:
-              os_type_keys_for_type_to_use:
-                0x70726F70: property #prop
-                0x436C7373: class #Clss
-                0x456E6D72: enumerated_reference #Enmr
-                0x72656C65: offset #rele
-                0x49646E74: identifier #Idnt
-                0x696E6478: index #indx
-                0x6E616D65: name #name
-          descriptor_item_data:
-            seq:
-              - id: descriptor
-                type: descriptor_resource
-          list_item_data:
-            seq:
-              - id: number_of_items
-                type: s4
-              - id: items
-                type: list_item
-                repeat: expr
-                repeat-expr: number_of_items
-            types:
-              list_item:
-                seq:
-                  - id: item_data_type
-                    type: u4
-                    enum: os_type_keys
-                  - id: item_data
-                    type:
-                      switch-on: item_data_type
-                      cases:
-                        os_type_keys::reference: reference_item_data
-                        os_type_keys::descriptor: descriptor_item_data
-                        os_type_keys::list: list_item_data
-                        os_type_keys::double: double_item_data
-                        os_type_keys::unit_float: unit_float_item_data
-                        os_type_keys::string: string_item_data
-                        os_type_keys::enumerated: enumerated_item_data
-                        os_type_keys::integer: integer_item_data
-                        os_type_keys::large_integer: large_integer_item_data
-                        os_type_keys::boolean: boolean_item_data
-                        os_type_keys::global_object: descriptor_item_data
-                        os_type_keys::class: class_item_data
-                        os_type_keys::global_class: class_item_data
-                        os_type_keys::alias: alias_item_data
-                        #os_type_keys::raw_data: raw_data_item_data
-          double_item_data:
-            seq:
-              - id: value
-                type: f8
-          unit_float_item_data:
-            seq:
-              - id: unit
-                type: s4
-                enum: units
-              - id: value
-                type: f8
-            enums:
-              units:
-                0x23416E67: angle_base_degrees ##Ang
-                0x2352736C: density_base_per_inch ##Rsl
-                0x23526C74: distance_base_72ppi ##Rlt
-                0x234E6E65: none_coerced ##NNe
-                0x23507263: percent_unit_value ##Prc
-                0x2350786C: pixels_tagged_unit_value ##Pxl
-          string_item_data:
-            seq:
-              - id: string
-                type: unicode_string_resource
-          enumerated_item_data:
-            seq:
-              - id: type_id
-                type: string_or_key
-              - id: enum_value
-                type: string_or_key
-          integer_item_data:
-            seq:
-              - id: value
-                type: s4
-          large_integer_item_data:
-            seq:
-              - id: value
-                type: s8
-          boolean_item_data:
-            seq:
-              - id: value
-                type: b8
-          class_item_data:
-            seq:
-              - id: name_from_class_id
-                type: unicode_string_resource
-              - id: class_id
-                type: string_or_key
-          alias_item_data:
-            seq:
-              - id: size_of_data
-                type: s4
-              - id: data
-                size: size_of_data
-        enums:
-          os_type_keys:
-            0x6F626A20: reference #obj
-            0x4F626A63: descriptor #Objc
-            0x566C4C73: list #VILs
-            0x646F7562: double #doub
-            0x556E7446: unit_float #UntF
-            0x54455854: string #TEXT
-            0x656E756D: enumerated #enum_value
-            0x6C6F6E67: integer #long_value
-            0x636F6D70: large_integer #comp
-            0x626F6F6C: boolean #bool
-            0x476C624F: global_object #GlbO
-            0x74797065: class #type
-            0x476C6243: global_class #GlbC
-            0x616C6973: alias #alis
-            0x74647461: raw_data #tdta
-      string_or_key:
-        seq:
-          - id: length
-            type: s4
-          - id: string
-            type: str
-            encoding: ascii
-            size: length
-            if: length > 0
-          - id: key
-            type: str
-            encoding: ascii
-            size: 4
-            if: length == 0
+
+ 
   unicode_string_resource:
     seq:
       - id: number_of_characters
